@@ -7,6 +7,9 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -28,6 +31,7 @@ endif()
 add_executable(send_borders
   src/send_borders.cpp
 )
+
 ament_target_dependencies(send_borders
   rclcpp
   geometry_msgs

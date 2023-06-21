@@ -3,3 +3,5 @@ install/
 log/
 utils/conf
 utils/map.sdf
+src/simulator/models/mindstorm_map/map.sdf
+
