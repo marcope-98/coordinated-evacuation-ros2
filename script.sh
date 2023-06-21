@@ -1,4 +1,4 @@
-set -e
+set -xe
 
 colcon build
 source ./install/setup.sh
