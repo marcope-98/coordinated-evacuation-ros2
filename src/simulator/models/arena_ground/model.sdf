@@ -23,7 +23,7 @@
         <pose frame=''>0 0 0 0 -0 0</pose>
         <geometry>
           <box>
-            <size>2.5 2.5 0.1</size>
+            <size>15.6 10.6 0.1</size>
           </box>
         </geometry>
 
