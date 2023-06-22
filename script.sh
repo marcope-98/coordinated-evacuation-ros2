@@ -1,26 +1,23 @@
 # display errors
 set -e
 
-# map generation sub routine
+# call map generator
 ./utils/MapGen-x86_64.AppImage
 
-# mv files in the code base
-if test -f ./conf; then
-    mv ./conf ./utils/
-fi
+if [[ -f ./conf ]] || [[ ! -z "$1" ]]; then
+    if [[ -f ./conf ]]; then
+        mv ./conf ./utils/
+        mv ./map.sdf ./utils/
+        cp ./utils/map.sdf ./src/simulator/models/mindstorm_map/
+    fi
+    conf='./utils/conf'
 
-if test -f ./map.sdf; then
-    mv ./map.sdf ./utils/
-    cp ./utils/map.sdf ./src/simulator/models/mindstorm_map/
-fi
-
-conf='./utils/conf'
-
-colcon build
-source ./install/setup.sh
-
-if test -f "${conf}"; then
+    colcon build
+    source ./install/setup.sh
     ros2 launch simulator sim.launch.py $(<"$conf")
 else
-    echo "default"
+    colcon build
+    source ./install/setup.sh
+    ros2 launch shelfino_gazebo multi_shelfino.launch.py
 fi
+
