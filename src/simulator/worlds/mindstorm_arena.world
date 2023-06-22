@@ -45,6 +45,7 @@
         <background>0.7 0.7 0.7 1</background>
         <!--<sky/>-->
         <shadows>0</shadows>
+        <grid>false</grid>
     </scene>
 
     <spherical_coordinates>
