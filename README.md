@@ -9,7 +9,7 @@ $ source ./devtool.sh
 $ rpl
 Available commands
 
-	 rpl clean  : removes install, log, build and files in utils/
+	 rpl clean  : removes install, log, build and files in utils
 	 rpl build  : performs build packages and source environment
 	 rpl mapgen : calls MapGen to generate custom map
 	 rpl run    : run simulation
