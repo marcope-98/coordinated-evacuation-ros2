@@ -102,15 +102,15 @@ def generate_launch_description():
         shelfino2,
         shelfino3,
         Node(
-            package='send_obstacles',
+            package='simulator',
             executable='send_obstacles'
         ),
         Node(
-            package='send_borders',
+            package='simulator',
             executable='send_borders'
         ),
         Node(
-            package='send_gates',
+            package='simulator',
             executable='send_gates'
         ),
     ])

@@ -1,9 +1,14 @@
 #!/bin/bash
 
 function rpl(){
-    # display errors
-    command="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+    service="gzserver"
+    
+    if pgrep -x "$service" >/dev/null; then
+        echo "$service is running. Exiting..."
+        return
+    fi
 
+    command="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
     case $command in
         clean)
             rm -rf ./install ./build ./log
@@ -13,6 +18,9 @@ function rpl(){
             ;;
         build)
             colcon build
+            if [ $? -ne 0 ]; then
+                return
+            fi
             source ./install/setup.sh
             ;;
         mapgen)
@@ -26,6 +34,9 @@ function rpl(){
             ;;
         run)
             colcon build
+            if [ $? -ne 0 ]; then
+                return
+            fi            
             source ./install/setup.sh
             if [[ -f ./utils/conf ]]; then
                 ros2 launch simulator sim.launch.py $(<"$conf")

@@ -57,7 +57,7 @@ def generate_launch_description():
         )
 
     get_position_node = Node(
-                            package='get_positions',
+                            package='simulator',
                             executable='get_positions',
                             namespace=robot,
                             remappings=[
