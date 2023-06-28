@@ -15,3 +15,7 @@ Available commands
 	 rpl run    : run simulation
 	 rpl all    : clean -> mapgen -> build -> run
 ```
+
+## TODO:
+
+- [ ] Add rviz to simulator launch.py

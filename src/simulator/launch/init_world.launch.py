@@ -5,6 +5,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 
 def generate_launch_description():
     
@@ -47,9 +48,16 @@ def generate_launch_description():
                     }.items(),
                 )
 
+    map_to_odom_transform = Node( 
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='map_server',
+        arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'map', 'odom'],
+        parameters=[{'use_sim_time': use_sim_time}])
     
     return LaunchDescription([
         declare_gui,
         declare_use_sim_time,
-        gazebo
+        gazebo,
+        map_to_odom_transform
     ])

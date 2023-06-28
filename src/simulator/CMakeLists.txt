@@ -37,6 +37,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+include_directories(include)
+
 # nodes executable
 add_executable(send_gates src/send_gates.cpp src/utils.hpp)
 add_executable(send_borders src/send_borders.cpp src/utils.hpp)
