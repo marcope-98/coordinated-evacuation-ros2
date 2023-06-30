@@ -48,7 +48,6 @@
 #include <stdexcept>
 #include <vector>
 
-
 namespace ClipperLib
 {
   static double const pi                = 3.141592653589793238;
@@ -287,6 +286,13 @@ namespace ClipperLib
         hi = -1;
       else
         hi = 0;
+      return *this;
+    }
+
+    Int128 &operator=(const Int128 &val)
+    {
+      lo = val.lo;
+      hi = val.hi;
       return *this;
     }
 
@@ -750,7 +756,8 @@ namespace ClipperLib
 
   inline void InitEdge(TEdge *e, TEdge *eNext, TEdge *ePrev, const IntPoint &Pt)
   {
-    std::memset(e, 0, sizeof(TEdge));
+    // std::memset(e, 0, sizeof(TEdge));
+    *e        = {};
     e->Next   = eNext;
     e->Prev   = ePrev;
     e->Curr   = Pt;

@@ -52,7 +52,17 @@ def generate_launch_description():
         package='tf2_ros',
         executable='static_transform_publisher',
         name='map_server',
-        arguments=['0.0', '0.0', '0.0', '0.0', '0.0', '0.0', '1.0', 'map', 'odom'],
+        arguments=[
+            '--frame-id', "map",
+            '--child-frame-id', "odom",
+            '--x', "0",
+            '--y', "0",
+            '--z', "0",
+            '--qx', "0",
+            '--qy', "0",
+            '--qz', "0",
+            '--qw', "1"
+        ],
         parameters=[{'use_sim_time': use_sim_time}])
     
     return LaunchDescription([

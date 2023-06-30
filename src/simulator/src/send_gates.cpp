@@ -4,9 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
-// #include <string>
 #include <unistd.h>
-// #include <vector>
 
 // messages
 #include "geometry_msgs/msg/pose.hpp"

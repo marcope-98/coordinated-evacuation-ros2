@@ -29,7 +29,6 @@ function rpl(){
                 mv ./conf ./utils/
                 mv ./map.sdf ./utils/
                 cp ./utils/map.sdf ./src/simulator/models/mindstorm_map/
-                conf='./utils/conf'
             fi
             ;;
         run)
@@ -39,6 +38,7 @@ function rpl(){
             fi            
             source ./install/setup.sh
             if [[ -f ./utils/conf ]]; then
+                conf='./utils/conf'
                 ros2 launch simulator sim.launch.py $(<"$conf")
             else 
                 ros2 launch shelfino_gazebo multi_shelfino.launch.py

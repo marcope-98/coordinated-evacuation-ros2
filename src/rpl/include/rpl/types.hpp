@@ -12,6 +12,7 @@ namespace rpl
   {
     float x = 0.f;
     float y = 0.f;
+    Point() = default;
     Point(const float &x_, const float &y_) : x(x_), y(y_) {}
   };
 

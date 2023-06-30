@@ -5,6 +5,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# custom functions
+include(cmake/register_executable.cmake)
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
@@ -18,6 +21,7 @@ find_package(obstacles_msgs REQUIRED)
 
 # rpl
 find_package(rpl REQUIRED)
+find_package(rpl_msgs REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -36,16 +40,11 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_executable(world_descriptor src/world_descriptor.cpp)
-
 include_directories(include)
 
-ament_target_dependencies(world_descriptor
-  rclcpp
-  rclcpp_components
-  obstacles_msgs
-  geometry_msgs
-  rpl
+register_executable(world_descriptor
+  "src/world_descriptor.cpp"
+  "rclcpp;rclcpp_components;obstacles_msgs;geometry_msgs;rpl;rpl_msgs"
 )
 
 install(TARGETS

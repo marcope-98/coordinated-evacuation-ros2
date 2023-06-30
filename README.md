@@ -18,4 +18,8 @@ Available commands
 
 ## TODO:
 
+- [x] Custom Messages
+- [ ] Adjust rpl/common.hpp to match shelfino geometric parameters
+- [ ] Get rid of rpl/WorldDescriptor and instead make it a set of static functions (optional: client-server)
+- [ ] Convert rpl_ros2 package into a composition
 - [ ] Add rviz to simulator launch.py

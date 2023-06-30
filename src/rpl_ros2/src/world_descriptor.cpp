@@ -1,10 +1,13 @@
 #include "rpl_ros2/world_descriptor.hpp"
 
+// stl
 #include <functional>
-#include <iostream>
 #include <memory>
-
+// rpl
 #include "rpl/types.hpp"
+// rpl_msgs
+#include "rpl_msgs/msg/point.hpp"
+#include "rpl_msgs/msg/pose.hpp"
 
 using std::placeholders::_1;
 
@@ -18,13 +21,23 @@ rpl_ros2::WorldDescriptorNode::WorldDescriptorNode() : rclcpp::Node("world_descr
       "map_borders", qos, std::bind(&WorldDescriptorNode::border_cb, this, _1));
   sub_obstacles = this->create_subscription<obstacles_msgs::msg::ObstacleArrayMsg>(
       "obstacles", qos, std::bind(&WorldDescriptorNode::obstacles_cb, this, _1));
+
+  pub_ = this->create_publisher<rpl::WorldDescriptor>(
+      "world_description", qos);
+
+  this->thread_ = std::thread(std::bind(&WorldDescriptorNode::wd_publisher, this));
+}
+
+rpl_ros2::WorldDescriptorNode::~WorldDescriptorNode()
+{
+  if (this->thread_.joinable()) this->thread_.join();
 }
 
 void rpl_ros2::WorldDescriptorNode::gate_cb(const geometry_msgs::msg::PoseArray::SharedPtr msg)
 {
-  bool is_bit_set = (((this->called >> 0u) & 0x01) == 0x01);
+  auto is_bit_set = bool(this->called & 0x01);
   if (is_bit_set) return;
-  this->called |= (0x01 << 0u);
+  this->called |= 0x01; // 0000 0001
 
   // process message
   this->wd.gates.reserve(msg->poses.size());
@@ -34,9 +47,9 @@ void rpl_ros2::WorldDescriptorNode::gate_cb(const geometry_msgs::msg::PoseArray:
 
 void rpl_ros2::WorldDescriptorNode::border_cb(const geometry_msgs::msg::Polygon::SharedPtr msg)
 {
-  bool is_bit_set = (((this->called >> 1u) & 0x01) == 0x01);
+  auto is_bit_set = bool(this->called & 0x02);
   if (is_bit_set) return;
-  this->called |= (0x01 << 1u);
+  this->called |= 0x02; // 0000 0010
 
   // process message
   rpl::Polygon border;
@@ -49,9 +62,9 @@ void rpl_ros2::WorldDescriptorNode::border_cb(const geometry_msgs::msg::Polygon:
 
 void rpl_ros2::WorldDescriptorNode::obstacles_cb(const obstacles_msgs::msg::ObstacleArrayMsg::SharedPtr msg)
 {
-  bool is_bit_set = (((this->called >> 2u) & 0x01) == 0x01);
+  auto is_bit_set = bool(this->called & 0x04);
   if (is_bit_set) return;
-  this->called |= (0x01 << 2u);
+  this->called |= 0x04; // 0000 0100
 
   // process message
   std::vector<rpl::Polygon> obstacles;
@@ -67,6 +80,17 @@ void rpl_ros2::WorldDescriptorNode::obstacles_cb(const obstacles_msgs::msg::Obst
     obstacles.emplace_back(poly);
   }
   this->wd.process_obstacles(obstacles);
+}
+
+void rpl_ros2::WorldDescriptorNode::wd_publisher()
+{
+  while (rclcpp::ok())
+  {
+    if (!(this->called == 0x07)) continue; // if this->called = 0000 0111
+    this->called = 0x0F;                   // 0000 1111
+
+    this->pub_->publish(this->wd);
+  }
 }
 
 int main(int argc, char *argv[])
