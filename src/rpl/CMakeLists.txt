@@ -4,27 +4,20 @@ set(PROJECT_NAME rpl)
 set(LIBRARY_NAME rpl)
 
 set(LIBRARY_INCLUDE_DIR include/${LIBRARY_NAME})
-set(LIBRARY_INCLUDE
-  ${LIBRARY_INCLUDE_DIR}/common.hpp
-  ${LIBRARY_INCLUDE_DIR}/types.hpp
-
-  # io
-  ${LIBRARY_INCLUDE_DIR}/io/WorldDescriptor.hpp
-  ${LIBRARY_INCLUDE_DIR}/io/Minkowski.hpp
-
-  # clipper
-  ${LIBRARY_INCLUDE_DIR}/clipper/clipper.hpp
-)
-
 set(LIBRARY_SRC_DIR src)
 set(LIBRARY_SRC
+
+  # clipper
+  ${LIBRARY_SRC_DIR}/clipper/clipper.cpp
 
   # io
   ${LIBRARY_SRC_DIR}/io/WorldDescriptor.cpp
   ${LIBRARY_SRC_DIR}/io/Minkowski.cpp
 
-  # clipper
-  ${LIBRARY_SRC_DIR}/clipper/clipper.cpp
+  # map
+  ${LIBRARY_SRC_DIR}/map/AVLTree.cpp
+  ${LIBRARY_SRC_DIR}/map/Graph.cpp
+  ${LIBRARY_SRC_DIR}/map/RoadMap.cpp
 )
 
 project(${PROJECT_NAME})

@@ -22,6 +22,7 @@ namespace rpl
   };
 
   using Polygon = std::vector<Point>;
+  using Vector  = Point[2];
 } // namespace rpl
 
 #endif // RPL_TYPES_HPP_
