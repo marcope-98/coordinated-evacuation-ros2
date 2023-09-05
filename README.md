@@ -16,10 +16,32 @@ Available commands
 	 rpl all    : clean -> mapgen -> build -> run
 ```
 
+## Execution
+
+Open two terminals:
+
+1. In the first terminal execute command
+
+```console
+$ cd robot-planning-ros2
+$ rpl all
+```
+Wait until the simulator is setup: you'll notice that the logger stops posting messages in the terminal
+
+2. In the second terminal execute command
+
+```console
+$ cd robot-planning-ros2
+$ source install/setup.sh
+$ ros2 launch rpl_ros2 rpl_ros2.launch.py n:=$number_of_robots$
+```
+Important: insert the number of shelfinos in the simulation instead of `$number_of_robots$`
+
+
+
 ## TODO:
 
 - [x] Custom Messages
-- [ ] Adjust rpl/common.hpp to match shelfino geometric parameters
-- [ ] Get rid of rpl/WorldDescriptor and instead make it a set of static functions (optional: client-server)
+- [x] Adjust rpl/common.hpp to match shelfino geometric parameters
 - [ ] Convert rpl_ros2 package into a composition
 - [ ] Add rviz to simulator launch.py
