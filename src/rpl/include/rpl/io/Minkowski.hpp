@@ -5,16 +5,16 @@
 #include <vector>
 // rpl
 #include "rpl/types.hpp"
-// rpl/clipper
-#include "rpl/clipper/clipper.hpp"
+// rpl/clipper2
+#include "rpl/clipper2/clipper.h"
 
 namespace rpl
 {
   struct Minkowski
   {
   private:
-    ClipperLib::ClipperOffset d_clipperOffset;
-    ClipperLib::Paths         d_paths;
+    Clipper2Lib::ClipperOffset d_clipperOffset;
+    Clipper2Lib::Paths64       d_paths;
 
   public:
     void execute(const std::vector<Polygon> &polygons, const float &offset,

@@ -7,76 +7,41 @@
 
 #include "rpl/internal/rplintrin.hpp"
 
-rpl::AVLTree::AVLTree(const std::size_t &N) : AVLTree()
+rpl::AVLTree::AVLTree(const std::size_t &N) : d_minseg{N}, d_size{N}
 {
-  this->minseg = N;
-  this->size   = N;
+  const std::size_t keys_size = this->align_up(this->d_size, 4);
+  const std::size_t vals_size = this->align_up(this->d_size, 16);
 
-  std::size_t active_edges_size = this->align_up(16); // round up to multiple of 16
-  std::size_t keys_size         = this->align_up(4);  // round up to multiple of 4
-
-  this->keys        = new float[keys_size];
-  this->ActiveEdges = new std::uint8_t[active_edges_size]();
+  this->p_keys = new float[keys_size];
+  this->p_vals = new std::uint8_t[vals_size]();
 
   __m128 two = _mm_set1_ps(2.f);
   for (std::size_t i = 0; i < keys_size; i += 4)
-    _mm_storeu_ps(this->keys + i, two);
+    _mm_store_ps(this->p_keys + i, two);
 }
 
 rpl::AVLTree::~AVLTree() { this->deallocate_all(); }
 
 void rpl::AVLTree::deallocate_all()
 {
-  delete[] this->keys;
-  delete[] this->ActiveEdges;
-}
-
-bool rpl::AVLTree::is_set(const std::size_t &value) const
-{
-  std::size_t quo = value >> 3u;
-  std::size_t rem = value - (quo << 3u);
-  return bool(this->ActiveEdges[quo] & (0x80u >> rem));
-}
-
-void rpl::AVLTree::insert(const std::size_t &value, const float &key)
-{
-  std::size_t quo = value >> 3u;
-  std::size_t rem = value - (quo << 3u);
-  this->ActiveEdges[quo] |= (0x80u >> rem); // set bit
-  this->keys[value] = key;
-}
-
-void rpl::AVLTree::update(const std::size_t &value, const float &key) { this->keys[value] = key; }
-
-void rpl::AVLTree::remove(const std::size_t &value)
-{
-  std::size_t quo = value >> 3u;
-  std::size_t rem = value - (quo << 3u);
-  this->ActiveEdges[quo] &= ~(0x80u >> rem);
-  this->keys[value] = 2.f;
+  delete[] this->p_keys;
+  delete[] this->p_vals;
 }
 
 void rpl::AVLTree::reset()
 {
-  this->minseg               = this->size;
-  std::size_t N_active_edges = this->align_up(16);
-  std::size_t N_keys         = this->align_up(4);
+  this->d_minseg = this->d_size;
+
+  const std::size_t keys_size = this->align_up(this->d_size, 4);
+  const std::size_t vals_size = this->align_up(this->d_size, 16);
+
+  __m128 two = _mm_set1_ps(2.f);
+  for (std::size_t i = 0; i < keys_size; i += 4)
+    _mm_store_ps(this->p_keys + i, two);
 
   __m128i zero = _mm_setzero_si128();
-  __m128  two  = _mm_set1_ps(2.f);
-
-  for (std::size_t i = 0; i < N_active_edges; i += 16)
-    _mm_storeu_si128((__m128i *)(this->ActiveEdges + i), zero);
-
-  for (std::size_t i = 0; i < N_keys; i += 4)
-    _mm_storeu_ps(this->keys + i, two);
-}
-
-void rpl::AVLTree::debug_info() const
-{
-  for (std::size_t i = 0; i < this->size; ++i)
-    std::cerr << i << (this->is_set(i) ? " true  " : " false ") << this->keys[i] << "\n";
-  std::cerr << "\n";
+  for (std::size_t i = 0; i < vals_size; i += 16)
+    _mm_store_si128((__m128i *)(this->p_vals + i), zero);
 }
 
 std::size_t rpl::AVLTree::minimum() const
@@ -84,14 +49,14 @@ std::size_t rpl::AVLTree::minimum() const
   const __m128i increment  = _mm_set1_epi32(4);
   __m128i       indices    = _mm_set_epi32(3, 2, 1, 0);
   __m128i       minindices = indices;
-  __m128        minvalues  = _mm_loadu_ps(this->keys);
+  __m128        minvalues  = _mm_load_ps(this->p_keys);
 
   __m128  values;
   __m128i mask;
-  for (std::size_t i = 4; i < this->size; i += 4)
+  for (std::size_t i = 4; i < this->size(); i += 4)
   {
     indices    = _mm_add_epi32(indices, increment);
-    values     = _mm_loadu_ps(this->keys + i);
+    values     = _mm_load_ps(this->p_keys + i);
     mask       = _mm_castps_si128(_mm_cmplt_ps(values, minvalues));
     minindices = _mm_blendv_epi8(minindices, indices, mask);
     minvalues  = _mm_min_ps(values, minvalues);
@@ -99,8 +64,8 @@ std::size_t rpl::AVLTree::minimum() const
 
   float         values_array[4];
   std::uint32_t indices_array[4];
-  _mm_storeu_ps(values_array, minvalues);
-  _mm_storeu_si128((__m128i *)indices_array, minindices);
+  _mm_store_ps(values_array, minvalues);
+  _mm_store_si128((__m128i *)indices_array, minindices);
   std::size_t minindex = indices_array[0];
   float       minvalue = values_array[0];
   for (std::size_t i = 1; i < 4; ++i)
@@ -109,31 +74,50 @@ std::size_t rpl::AVLTree::minimum() const
       minindex = indices_array[i];
       minvalue = values_array[i];
     }
-  return minindex > this->size ? this->size : minindex;
+
+  return minindex > this->d_size ? this->d_size : minindex;
 }
 
-void rpl::AVLTree::update_minseg() { this->minseg = this->minimum(); }
-
-rpl::AVLTree &rpl::AVLTree::operator=(const AVLTree &other)
+void rpl::AVLTree::resize(const std::size_t &newsize)
 {
-  this->minseg = other.minseg;
-  this->size   = other.size;
+  delete[] this->p_keys;
+  this->p_keys = new float[this->align_up(newsize, 4)];
+  if (newsize > this->align_up(this->d_size, 16))
+  {
+    delete[] this->p_vals;
+    this->p_vals = new std::uint8_t[this->align_up(newsize, 16)]();
+  }
 
-  std::size_t active_edges_size = this->align_up(16); // round up to multiple of 16
-  std::size_t keys_size         = this->align_up(4);  // round up to multiple of 4
-  this->keys                    = new float[keys_size];
-  this->ActiveEdges             = new std::uint8_t[active_edges_size]();
-
-  std::copy(other.keys, other.keys + keys_size, this->keys);
-  std::copy(other.ActiveEdges, other.ActiveEdges + active_edges_size, this->ActiveEdges);
-  return *this;
+  this->d_size = newsize;
+  this->reset();
 }
 
-rpl::AVLTree &rpl::AVLTree::operator=(AVLTree &&other)
+void rpl::AVLTree::insert(const std::size_t &value, const float &key)
 {
-  this->minseg = other.minseg;
-  this->size   = other.size;
-  std::swap(this->keys, other.keys);
-  std::swap(this->ActiveEdges, other.ActiveEdges);
-  return *this;
+  const std::size_t div = value >> 3u;
+  const std::size_t rem = value - (div << 3u);
+  this->p_vals[div] |= (0x80u >> rem);
+  this->p_keys[value] = key;
+}
+
+void rpl::AVLTree::remove(const std::size_t &value)
+{
+  const std::size_t div = value >> 3u;
+  const std::size_t rem = value - (div << 3u);
+  this->p_vals[div] &= ~(0x80u >> rem);
+  this->p_keys[value] = 2.f;
+}
+
+bool rpl::AVLTree::is_set(const std::size_t &value) const
+{
+  const std::size_t div = value >> 3u;
+  const std::size_t rem = value - (div << 3u);
+  return bool(this->p_vals[div] & (0x80u >> rem));
+}
+
+void rpl::AVLTree::debug_info() const
+{
+  for (std::size_t i = 0; i < this->d_size; ++i)
+    std::cerr << i << (this->is_set(i) ? " true  " : " false ") << this->p_keys[i] << "\n";
+  std::cerr << "\n";
 }

@@ -2,6 +2,7 @@
 // stl
 #include <chrono>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <unistd.h>
 
@@ -15,7 +16,8 @@ PositionListener::PositionListener() : Node("get_positions")
   tf_buffer_   = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   publisher_   = this->create_publisher<geometry_msgs::msg::TransformStamped>("transform", qos);
-  timer_       = this->create_wall_timer(500ms, std::bind(&PositionListener::timer_callback, this));
+  // timer_       = this->create_wall_timer(500ms, std::bind(&PositionListener::timer_callback, this));
+  timer_ = this->create_wall_timer(100ms, std::bind(&PositionListener::timer_callback, this));
 }
 
 void PositionListener::timer_callback()

@@ -18,6 +18,8 @@ find_package(rclcpp_components REQUIRED)
 # messages
 find_package(geometry_msgs REQUIRED)
 find_package(obstacles_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2 REQUIRED)
 
 # rpl
 find_package(rpl REQUIRED)
@@ -47,8 +49,32 @@ register_executable(world_descriptor
   "rclcpp;rclcpp_components;obstacles_msgs;geometry_msgs;rpl;rpl_msgs"
 )
 
+register_executable(roadmap_publisher
+  "src/roadmap_publisher.cpp"
+  "rclcpp;rpl;rpl_msgs"
+)
+
+register_executable(shelfino_planner
+  "src/shelfino_planner.cpp"
+  "rclcpp;tf2;tf2_ros;geometry_msgs;rpl;rpl_msgs"
+)
+
+register_executable(shelfino_delay
+  "src/shelfino_delay.cpp"
+  "rclcpp;rpl;rpl_msgs"
+)
+
+register_executable(shelfino_path_executor
+  "src/shelfino_path_executor.cpp"
+  "rclcpp;tf2;tf2_ros;geometry_msgs;rpl;rpl_msgs;"
+)
+
 install(TARGETS
   world_descriptor
+  roadmap_publisher
+  shelfino_planner
+  shelfino_delay
+  shelfino_path_executor
   DESTINATION lib/${PROJECT_NAME}
 )
 

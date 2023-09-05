@@ -33,7 +33,7 @@
   
     <link name="point1">
       <pose relative_to="link">
-        0 1.0041 0 0 0 0
+        1.0041 0 0 0 0 0
       </pose>
     </link>
   
@@ -45,7 +45,7 @@
    
     <link name="point3">
       <pose relative_to="link">
-        1.0041 0 0 0 0 0
+        0 1.0041 0 0 0 0
       </pose>
     </link>
 

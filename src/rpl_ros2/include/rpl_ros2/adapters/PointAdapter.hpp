@@ -19,8 +19,8 @@ struct rclcpp::TypeAdapter<rpl::Point, rpl_msgs::msg::Point>
                                      ros_message_type & destination)
   {
     destination = rpl_msgs::build<ros_message_type>()
-                      .x(source.x)
-                      .y(source.y);
+                      .x(source.x())
+                      .y(source.y());
   }
 
   static void convert_to_custom(const ros_message_type &source,

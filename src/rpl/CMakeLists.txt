@@ -10,14 +10,24 @@ set(LIBRARY_SRC
   # clipper
   ${LIBRARY_SRC_DIR}/clipper/clipper.cpp
 
+  # clipper2
+  ${LIBRARY_SRC_DIR}/clipper2/clipper.engine.cpp
+  ${LIBRARY_SRC_DIR}/clipper2/clipper.offset.cpp
+  ${LIBRARY_SRC_DIR}/clipper2/clipper.rectclip.cpp
+
   # io
   ${LIBRARY_SRC_DIR}/io/WorldDescriptor.cpp
   ${LIBRARY_SRC_DIR}/io/Minkowski.cpp
 
   # map
   ${LIBRARY_SRC_DIR}/map/AVLTree.cpp
+  ${LIBRARY_SRC_DIR}/map/Table.cpp
   ${LIBRARY_SRC_DIR}/map/Graph.cpp
   ${LIBRARY_SRC_DIR}/map/RoadMap.cpp
+
+  # planning
+  ${LIBRARY_SRC_DIR}/planning/Dubins.cpp
+  ${LIBRARY_SRC_DIR}/planning/CollisionDetection.cpp
 )
 
 project(${PROJECT_NAME})

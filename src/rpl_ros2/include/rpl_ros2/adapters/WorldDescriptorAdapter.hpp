@@ -23,31 +23,41 @@ struct rclcpp::TypeAdapter<rpl::WorldDescriptor, rpl_msgs::msg::WorldDescriptor>
   static void convert_to_ros_message(const custom_type &source,
                                      ros_message_type & destination)
   {
-    destination.obstacles.resize(source.obstacles.size());
-    destination.gates.resize(source.obstacles.size());
+    destination.obstacles_inner.resize(source.obstacles_inner.size());
+    destination.obstacles_outer.resize(source.obstacles_outer.size());
+    destination.gates.resize(source.gates.size());
 
-    for (std::size_t i = 0; i < source.obstacles.size(); ++i)
-      PolygonAdapter::convert_to_ros_message(source.obstacles[i], destination.obstacles[i]);
+    for (std::size_t i = 0; i < source.obstacles_inner.size(); ++i)
+      PolygonAdapter::convert_to_ros_message(source.obstacles_inner[i], destination.obstacles_inner[i]);
+
+    for (std::size_t i = 0; i < source.obstacles_outer.size(); ++i)
+      PolygonAdapter::convert_to_ros_message(source.obstacles_outer[i], destination.obstacles_outer[i]);
 
     for (std::size_t i = 0; i < source.gates.size(); ++i)
       PointAdapter::convert_to_ros_message(source.gates[i], destination.gates[i]);
 
-    PolygonAdapter::convert_to_ros_message(source.border, destination.border);
+    PolygonAdapter::convert_to_ros_message(source.border_inner, destination.border_inner);
+    PolygonAdapter::convert_to_ros_message(source.border_outer, destination.border_outer);
   }
 
   static void convert_to_custom(const ros_message_type &source,
                                 custom_type &           destination)
   {
-    destination.obstacles.resize(source.obstacles.size());
-    destination.gates.resize(source.obstacles.size());
+    destination.obstacles_inner.resize(source.obstacles_inner.size());
+    destination.obstacles_outer.resize(source.obstacles_outer.size());
+    destination.gates.resize(source.gates.size());
 
-    for (std::size_t i = 0; i < source.obstacles.size(); ++i)
-      PolygonAdapter::convert_to_custom(source.obstacles[i], destination.obstacles[i]);
+    for (std::size_t i = 0; i < source.obstacles_inner.size(); ++i)
+      PolygonAdapter::convert_to_custom(source.obstacles_inner[i], destination.obstacles_inner[i]);
+
+    for (std::size_t i = 0; i < source.obstacles_outer.size(); ++i)
+      PolygonAdapter::convert_to_custom(source.obstacles_outer[i], destination.obstacles_outer[i]);
 
     for (std::size_t i = 0; i < source.gates.size(); ++i)
       PointAdapter::convert_to_custom(source.gates[i], destination.gates[i]);
 
-    PolygonAdapter::convert_to_custom(source.border, destination.border);
+    PolygonAdapter::convert_to_custom(source.border_inner, destination.border_inner);
+    PolygonAdapter::convert_to_custom(source.border_outer, destination.border_outer);
   }
 };
 

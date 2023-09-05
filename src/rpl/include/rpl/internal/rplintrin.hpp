@@ -13,11 +13,11 @@ namespace rpl
     {
       float         f32;
       std::uint32_t u32;
-      explicit cvt(const float &a) : f32(a) {}
+      explicit cvt(const float &a) : f32{a} {}
     };
 
   public:
-    static float cvt_hex_to_f32(const std::uint32_t &hex)
+    static float hex_to_f32(const std::uint32_t &hex)
     {
       cvt temp(0.f);
       temp.u32 = hex;
@@ -27,7 +27,7 @@ namespace rpl
     static float abs_f32(const float &value)
     {
       cvt a(value);
-      a.u32 &= (0x7FFFFFFFU); // &= -0.f
+      a.u32 &= (0x7FFFFFFFU);
       return a.f32;
     }
 

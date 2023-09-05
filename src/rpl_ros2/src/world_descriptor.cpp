@@ -1,7 +1,9 @@
 #include "rpl_ros2/world_descriptor.hpp"
 
 // stl
+#include <chrono>
 #include <functional>
+#include <iostream>
 #include <memory>
 // rpl
 #include "rpl/types.hpp"
@@ -37,19 +39,18 @@ void rpl_ros2::WorldDescriptorNode::gate_cb(const geometry_msgs::msg::PoseArray:
 {
   auto is_bit_set = bool(this->called & 0x01);
   if (is_bit_set) return;
-  this->called |= 0x01; // 0000 0001
 
   // process message
   this->wd.gates.reserve(msg->poses.size());
   for (const auto &pose : msg->poses)
     this->wd.gates.emplace_back(pose.position.x, pose.position.y);
+  this->called |= 0x01; // 0000 0001
 }
 
 void rpl_ros2::WorldDescriptorNode::border_cb(const geometry_msgs::msg::Polygon::SharedPtr msg)
 {
   auto is_bit_set = bool(this->called & 0x02);
   if (is_bit_set) return;
-  this->called |= 0x02; // 0000 0010
 
   // process message
   rpl::Polygon border;
@@ -58,13 +59,13 @@ void rpl_ros2::WorldDescriptorNode::border_cb(const geometry_msgs::msg::Polygon:
     border.emplace_back(point.x, point.y);
 
   this->wd.process_border(border);
+  this->called |= 0x02; // 0000 0010
 }
 
 void rpl_ros2::WorldDescriptorNode::obstacles_cb(const obstacles_msgs::msg::ObstacleArrayMsg::SharedPtr msg)
 {
   auto is_bit_set = bool(this->called & 0x04);
   if (is_bit_set) return;
-  this->called |= 0x04; // 0000 0100
 
   // process message
   std::vector<rpl::Polygon> obstacles;
@@ -79,7 +80,10 @@ void rpl_ros2::WorldDescriptorNode::obstacles_cb(const obstacles_msgs::msg::Obst
       poly.emplace_back(point.x, point.y);
     obstacles.emplace_back(poly);
   }
+
   this->wd.process_obstacles(obstacles);
+
+  this->called |= 0x04; // 0000 0100
 }
 
 void rpl_ros2::WorldDescriptorNode::wd_publisher()
@@ -89,7 +93,11 @@ void rpl_ros2::WorldDescriptorNode::wd_publisher()
     if (!(this->called == 0x07)) continue; // if this->called = 0000 0111
     this->called = 0x0F;                   // 0000 1111
 
-    this->pub_->publish(this->wd);
+    for (;;)
+    {
+      this->pub_->publish(this->wd);
+      usleep(1000000); // TODO: every second?
+    }
   }
 }
 
@@ -100,3 +108,5 @@ int main(int argc, char *argv[])
   rclcpp::shutdown();
   return 0;
 }
+
+// rectangle medium is c

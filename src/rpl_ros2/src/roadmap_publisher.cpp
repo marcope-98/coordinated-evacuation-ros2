@@ -5,7 +5,6 @@
 #include <memory>
 // rpl
 // rpl_msgs
-
 using std::placeholders::_1;
 
 rpl_ros2::RoadmapNode::RoadmapNode() : rclcpp::Node("roadmap")
@@ -17,11 +16,16 @@ rpl_ros2::RoadmapNode::RoadmapNode() : rclcpp::Node("roadmap")
       "roadmap_topic", qos);
 }
 
-rpl_ros2::RoadmapNode::world_descriptor_cb(const rpl::WorldDescriptor &msg)
+void rpl_ros2::RoadmapNode::world_descriptor_cb(const rpl::WorldDescriptor &msg)
 {
-  this->rm = std::move(rpl::RoadMap(msg.obstacles, msg.gates));
-  this->rm.execute(msg.border);
-  this->pub_.publish(this->rm);
+  this->rm = std::move(rpl::RoadMap(msg.obstacles_outer, msg.gates[0]));
+  this->rm.execute();
+  this->rm.remove_out_of_bounds(msg.border_outer);
+  for (;;)
+  {
+    this->pub_->publish(this->rm);
+    usleep(1000000); // TODO: every second?
+  }
 }
 
 int main(int argc, char *argv[])
