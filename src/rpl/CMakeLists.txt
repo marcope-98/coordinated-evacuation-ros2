@@ -7,9 +7,6 @@ set(LIBRARY_INCLUDE_DIR include/${LIBRARY_NAME})
 set(LIBRARY_SRC_DIR src)
 set(LIBRARY_SRC
 
-  # clipper
-  ${LIBRARY_SRC_DIR}/clipper/clipper.cpp
-
   # clipper2
   ${LIBRARY_SRC_DIR}/clipper2/clipper.engine.cpp
   ${LIBRARY_SRC_DIR}/clipper2/clipper.offset.cpp
