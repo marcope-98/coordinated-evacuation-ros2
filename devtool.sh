@@ -41,7 +41,11 @@ function rpl(){
         run)
             
             rpl build $2
-
+            
+            if [ $? -ne 0 ]; then
+                return
+            fi
+            
             if [[ -f ./utils/conf ]]; then
                 conf='./utils/conf'
                 ros2 launch simulator sim.launch.py $(<"$conf")
@@ -58,7 +62,9 @@ function rpl(){
             if [ -z "$2" ]; then
                 return
             fi
+            rm ./utils/conf ./utils/map.sdf 
             cp $2/conf $2/map.sdf ./utils
+            cp ./utils/map.sdf ./src/simulator/models/mindstorm_map/
             
 
             rpl run simulator

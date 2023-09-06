@@ -1,5 +1,6 @@
 #include "rpl_ros2/shelfino_path_executor.hpp"
 
+#include <cstdlib>
 #include <functional>
 
 #include "rpl/internal/rplintrin.hpp"
@@ -15,7 +16,8 @@ using std::placeholders::_1;
 rpl_ros2::ShelfinoPathExecutorNode::ShelfinoPathExecutorNode() : rclcpp::Node("shelfino_executor_node")
 {
   // subscriber to path
-  auto qos        = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
+  auto qos = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
+
   this->paths_sub = this->create_subscription<rpl::Paths>(
       "final_path", qos, std::bind(&ShelfinoPathExecutorNode::paths_cb, this, _1));
   this->cmd_vel_pub = this->create_publisher<geometry_msgs::msg::Twist>(
@@ -135,10 +137,9 @@ void rpl_ros2::ShelfinoPathExecutorNode::paths_cb(const rpl::Paths &paths)
 {
   if (this->received || paths.empty()) return;
   this->received = true;
-
+  // if (paths.empty()) std::cerr << this->get_namespace() << " has no solution\n";
   this->path = std::move(paths);
   this->get_waypoints();
-  this->final_goal = this->path.back().end;
 
   auto qos       = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
   this->pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
@@ -149,15 +150,15 @@ void rpl_ros2::ShelfinoPathExecutorNode::paths_cb(const rpl::Paths &paths)
 void rpl_ros2::ShelfinoPathExecutorNode::compute_deltas(const rpl::Pose &current, float &deltav, float &deltaw)
 {
   rpl::Pose goal   = this->commands[this->current_waypoint].goal;
-  float     ex     = (goal.x() - current.x());
-  float     ey     = (goal.y() - current.y());
-  float     etheta = rpl::utils::rangeSymm(goal.theta - current.theta);
+  float     ex     = (current.x() - goal.x());
+  float     ey     = (current.y() - goal.y());
+  float     etheta = rpl::utils::rangeSymm(rpl::utils::rangeSymm(current.theta) - rpl::utils::rangeSymm(goal.theta));
   float     exy    = sqrtf(ex * ex + ey * ey);
   float     psi    = atan2f(ey, ex);
-  float     alpha  = rpl::utils::rangeSymm(current.theta + goal.theta);
+  float     alpha  = rpl::utils::rangeSymm(current.theta) + rpl::utils::rangeSymm(goal.theta);
 
-  deltav = +this->kp * exy * cosf(rpl::utils::rangeSymm(current.theta) - psi);
-  deltaw = -exy * rpl::settings::linear() * rpl::utils::sinc(etheta * 0.5f) * sinf(psi - 0.5f * alpha) - this->kt * etheta;
+  deltav = -this->kp * exy * cosf(rpl::utils::rangeSymm(current.theta) - psi);
+  deltaw = -rpl::settings::linear() * rpl::utils::sinc(etheta * 0.5f) * sinf(psi - 0.5f * alpha) - this->kt * etheta;
 }
 
 void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::TransformStamped::SharedPtr msg)
@@ -182,18 +183,13 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
       std::cerr << "Travel time: " << float(timer.stop()) * 0.001f << "ms\n";
       once = false;
     }
-
     return;
   }
-  if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < 0.5f)
+
+  if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < .5f)
     this->current_waypoint += 1;
   else
-  {
-    int primitive = this->commands[this->current_waypoint].primitive;
-    if (primitive == 0) this->cmd_vel_pub->publish(this->straight(deltav, deltaw));
-    if (primitive == -1) this->cmd_vel_pub->publish(this->right(deltav, deltaw));
-    if (primitive == +1) this->cmd_vel_pub->publish(this->left(deltav, deltaw));
-  }
+    this->cmd_vel_pub->publish(this->straight(deltav, deltaw));
 }
 
 int main(int argc, char *argv[])

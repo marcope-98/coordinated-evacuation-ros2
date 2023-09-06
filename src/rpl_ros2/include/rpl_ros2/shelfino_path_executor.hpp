@@ -30,9 +30,9 @@ namespace rpl_ros2
 
     geometry_msgs::msg::Twist left(const float &deltav, const float &deltaw)
     {
-      geometry_msgs::msg::Twist res = this->stop();
-      res.linear.x                  = rpl::settings::linear() + deltav;
-      res.angular.z                 = rpl::settings::angular() + deltaw;
+      geometry_msgs ::msg::Twist res = this->stop();
+      res.linear.x                   = rpl::settings::linear() + deltav;
+      res.angular.z                  = rpl::settings::angular() + deltaw;
       return res;
     }
 
@@ -82,7 +82,6 @@ namespace rpl_ros2
     rpl::Paths           path;
     std::vector<Command> commands;
     std::size_t          current_waypoint{0};
-    rpl::Pose            final_goal;
 
     float kp = 0.f;
     float kt = 0.1f;

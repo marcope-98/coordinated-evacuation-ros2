@@ -36,6 +36,13 @@ namespace rpl
       return sinf(value) / value;
     }
 
+    static float sinc2(const float &value)
+    {
+      if (ops::cmplt_f32(ops::abs_f32(value), 0.f))
+        return 1.f;
+      return sinf(value) / value;
+    }
+
     static Pose interpolate(Pose pose, const float &L, const float &k)
     {
       pose.x() += L * sinc(k * L * 0.5f) * cosf(pose.theta + k * L * 0.5f);

@@ -9,6 +9,7 @@
 
 #include "rpl/Timer.hpp"
 #include "rpl/common.hpp"
+#include "rpl/internal/geometry.hpp"
 #include "rpl/internal/rplintrin.hpp"
 
 using std::placeholders::_1;
@@ -118,6 +119,7 @@ void rpl_ros2::ShelfinoDelayNode::exec()
     // add delays to lower priority paths
     this->delays[this->priorities[1]] += delay;
     this->delays[this->priorities[2]] += delay;
+
     std::cerr << "Shelfino Delay computation time: " << float(timer.stop()) * 0.001f << "ms\n";
 
     // register timer_callback and execute
@@ -138,9 +140,12 @@ float rpl_ros2::ShelfinoDelayNode::compute_delay_ms(const std::size_t &high, con
        i < pathH.size() && j < pathL.size();
        ++i, ++j)
   {
-    if ((pathH[i].end.point() - pathL[j].end.point()).norm() < 2.f)
+    if ((pathH[i].end.point() - pathL[j].end.point()).norm() < 2.f ||
+        rpl::geometry::intersects(pathH[i].start.point(), pathH[i].end.point(),
+                                  pathL[j].start.point(), pathL[j].end.point()))
     {
-      delay += pathH[i].sum;
+      delay += 2.f;
+      // delay += pathH[i].sum;
       --j;
     }
   }

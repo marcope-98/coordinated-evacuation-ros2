@@ -72,15 +72,14 @@ def generate_launch_description():
         package='rpl_ros2',
         condition=IfCondition(PythonExpression([n ,'>=2'])),
         executable='shelfino_path_executor',
-        namespace='shelfino2'
+        namespace='shelfino2',
     )
 
     shelfino3 = Node(
         package='rpl_ros2',
         condition=IfCondition(PythonExpression([n ,'>=3'])),
         executable='shelfino_path_executor',
-        namespace='shelfino3'
-
+        namespace='shelfino3',
     )
 
 
