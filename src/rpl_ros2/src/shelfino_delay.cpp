@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 
+#include "rpl/Timer.hpp"
 #include "rpl/common.hpp"
 #include "rpl/internal/rplintrin.hpp"
 
@@ -102,7 +103,8 @@ void rpl_ros2::ShelfinoDelayNode::exec()
   {
     if (!(this->received == this->target)) continue;
     this->received = 0xFF;
-
+    rpl::Timer timer;
+    timer.start();
     // set priorities
     this->set_priorities();
 
@@ -116,6 +118,7 @@ void rpl_ros2::ShelfinoDelayNode::exec()
     // add delays to lower priority paths
     this->delays[this->priorities[1]] += delay;
     this->delays[this->priorities[2]] += delay;
+    std::cerr << "Shelfino Delay computation time: " << float(timer.stop()) * 0.001f << "ms\n";
 
     // register timer_callback and execute
     this->timer_ = this->create_wall_timer(
@@ -142,7 +145,7 @@ float rpl_ros2::ShelfinoDelayNode::compute_delay_ms(const std::size_t &high, con
     }
   }
 
-  return ceilf(delay / rpl::settings::linear()) * 1000.f;
+  return ceilf(delay * 1000.f / rpl::settings::linear());
 }
 
 void rpl_ros2::ShelfinoDelayNode::timer_cb()

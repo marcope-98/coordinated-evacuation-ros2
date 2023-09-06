@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "rpl/Timer.hpp"
 #include "rpl/planning/Dubins.hpp"
 
 #include "geometry_msgs/msg/vector3.hpp"
@@ -75,6 +76,9 @@ void rpl_ros2::ShelfinoPlannerNode::exec()
     if (!(this->called == 0x07)) continue;
     this->called = 0x0F;
 
+    rpl::Timer timer;
+    timer.start();
+
     rpl::Dubins                           db;
     std::vector<rpl ::RoadMap::Candidate> rm_candidates = this->rm.dijkstra(this->start_pose);
     rpl::Paths                            db_candidates;
@@ -112,6 +116,8 @@ void rpl_ros2::ShelfinoPlannerNode::exec()
         solution.emplace_back(db_candidates[best]); // solution.emplace_back
       }
     }
+
+    std::cerr << "Solution time: " << float(timer.stop()) * 0.001f << "ms\n";
 
     for (;;)
     {

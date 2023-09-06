@@ -96,7 +96,7 @@ void rpl_ros2::WorldDescriptorNode::wd_publisher()
     for (;;)
     {
       this->pub_->publish(this->wd);
-      usleep(1000000); // TODO: every second?
+      usleep(500000);
     }
   }
 }

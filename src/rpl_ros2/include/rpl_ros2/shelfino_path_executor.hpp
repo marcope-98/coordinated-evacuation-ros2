@@ -8,6 +8,7 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 
+#include "rpl/Timer.hpp"
 #include "rpl/common.hpp"
 #include "rpl/types.hpp"
 #include "rpl_msgs/msg/paths.hpp"
@@ -83,10 +84,13 @@ namespace rpl_ros2
     std::size_t          current_waypoint{0};
     rpl::Pose            final_goal;
 
-    float kp = 0.0f;
+    float kp = 0.f;
     float kt = 0.1f;
 
+    rpl::Timer timer;
+
     bool received{false};
+    bool once{true};
   };
 } // namespace rpl_ros2
 

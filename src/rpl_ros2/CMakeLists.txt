@@ -66,7 +66,7 @@ register_executable(shelfino_delay
 
 register_executable(shelfino_path_executor
   "src/shelfino_path_executor.cpp"
-  "rclcpp;tf2;tf2_ros;geometry_msgs;rpl;rpl_msgs;"
+  "rclcpp;tf2;tf2_ros;geometry_msgs;rpl;rpl_msgs"
 )
 
 install(TARGETS

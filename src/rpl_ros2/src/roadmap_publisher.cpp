@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 // rpl
+#include "rpl/Timer.hpp"
 // rpl_msgs
 using std::placeholders::_1;
 
@@ -19,12 +20,16 @@ rpl_ros2::RoadmapNode::RoadmapNode() : rclcpp::Node("roadmap")
 void rpl_ros2::RoadmapNode::world_descriptor_cb(const rpl::WorldDescriptor &msg)
 {
   this->rm = std::move(rpl::RoadMap(msg.obstacles_outer, msg.gates[0]));
+  rpl::Timer timer;
+  timer.start();
   this->rm.execute();
   this->rm.remove_out_of_bounds(msg.border_outer);
+  std::cerr << "Roadmap Construction time: " << float(timer.stop()) * 0.001f << "ms\n";
+
   for (;;)
   {
     this->pub_->publish(this->rm);
-    usleep(1000000); // TODO: every second?
+    usleep(500000);
   }
 }
 

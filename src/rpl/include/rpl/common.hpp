@@ -13,8 +13,8 @@ namespace rpl
     constexpr static float M_2PI() { return 2.f * M_PI; }
 
     // ClipperLib
-    constexpr static float       working_envelope_inner() { return 0.25f; }
-    constexpr static float       working_envelope_outer() { return 0.5f; }
+    constexpr static float       working_envelope_inner() { return 0.3f; }
+    constexpr static float       working_envelope_outer() { return 0.4f; }
     constexpr static std::size_t max_polygon_size() { return 6; }
     constexpr static float       exp_factor() { return 1000.f; }
     constexpr static float       iexp_factor() { return 1.f / exp_factor(); }

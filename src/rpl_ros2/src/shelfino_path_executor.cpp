@@ -143,6 +143,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::paths_cb(const rpl::Paths &paths)
   auto qos       = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
   this->pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
       "transform", qos, std::bind(&ShelfinoPathExecutorNode::pose_cb, this, _1));
+  this->timer.start();
 }
 
 void rpl_ros2::ShelfinoPathExecutorNode::compute_deltas(const rpl::Pose &current, float &deltav, float &deltaw)
@@ -176,6 +177,12 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
   if (this->current_waypoint == this->commands.size())
   {
     this->cmd_vel_pub->publish(this->stop());
+    if (once)
+    {
+      std::cerr << "Travel time: " << float(timer.stop()) * 0.001f << "ms\n";
+      once = false;
+    }
+
     return;
   }
   if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < 0.5f)
