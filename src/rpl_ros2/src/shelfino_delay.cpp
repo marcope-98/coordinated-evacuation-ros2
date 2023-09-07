@@ -115,7 +115,7 @@ void rpl_ros2::ShelfinoDelayNode::exec()
     delay = this->compute_delay_ms(this->priorities[1], this->priorities[2]);
     this->delays[this->priorities[2]] += delay;
     // Handle two highest priority paths
-    delay = this->compute_delay_ms(this->priorities[0], this->priorities[1]);
+    delay += this->compute_delay_ms(this->priorities[0], this->priorities[1]);
     // add delays to lower priority paths
     this->delays[this->priorities[1]] += delay;
     this->delays[this->priorities[2]] += delay;

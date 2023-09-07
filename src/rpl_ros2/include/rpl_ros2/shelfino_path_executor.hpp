@@ -28,27 +28,16 @@ namespace rpl_ros2
     void get_waypoints();
     void get_waypoints2();
 
-    geometry_msgs::msg::Twist left(const float &deltav, const float &deltaw)
-    {
-      geometry_msgs ::msg::Twist res = this->stop();
-      res.linear.x                   = rpl::settings::linear() + deltav;
-      res.angular.z                  = rpl::settings::angular() + deltaw;
-      return res;
-    }
-
-    geometry_msgs::msg::Twist right(const float &deltav, const float &deltaw)
-    {
-      geometry_msgs::msg::Twist res = this->stop();
-      res.linear.x                  = rpl::settings::linear() + deltav;
-      res.angular.z                 = -rpl::settings::angular() + deltaw;
-      return res;
-    }
-
     geometry_msgs::msg::Twist straight(const float &deltav, const float &deltaw)
     {
       geometry_msgs::msg::Twist res = this->stop();
-      res.linear.x                  = rpl::settings::linear() + deltav;
       res.angular.z                 = deltaw;
+      if (deltaw > rpl::settings::angular())
+        res.angular.z = rpl::settings::angular();
+      if (deltaw < -rpl::settings::angular())
+        res.angular.z = -rpl::settings::angular();
+
+      res.linear.x = rpl::settings::linear() + deltav;
       return res;
     }
 
@@ -83,8 +72,8 @@ namespace rpl_ros2
     std::vector<Command> commands;
     std::size_t          current_waypoint{0};
 
-    float kp = 0.f;
-    float kt = 0.1f;
+    float kp = 0.1f;
+    float kt = 1.f;
 
     rpl::Timer timer;
 

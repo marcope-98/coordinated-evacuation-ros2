@@ -1,6 +1,6 @@
 #include "rpl_ros2/shelfino_path_executor.hpp"
-
 #include <cstdlib>
+#include <cstring>
 #include <functional>
 
 #include "rpl/internal/rplintrin.hpp"
@@ -28,7 +28,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::get_waypoints2()
 {
   Command     command;
   rpl::Pose   current;
-  const float step = 0.5f;
+  const float step = 0.2f;
   float       rem  = 0.f;
   for (const auto &elem : this->path)
   {
@@ -107,7 +107,8 @@ void rpl_ros2::ShelfinoPathExecutorNode::get_waypoints()
     command.primitive = bool(elem.type & 1u) ? -1.f : +1.f;
     current           = rpl::utils::interpolate(current, elem.s1, command.primitive * rpl::settings::kappa());
     command.goal      = current;
-    this->commands.emplace_back(command);
+    if (rpl::ops::cmpgt_f32(elem.s1, 0.f))
+      this->commands.emplace_back(command);
 
     // 2nd segment
     switch (elem.type)
@@ -123,13 +124,15 @@ void rpl_ros2::ShelfinoPathExecutorNode::get_waypoints()
     }
     current      = rpl::utils::interpolate(current, elem.s2, command.primitive * rpl::settings::kappa());
     command.goal = current;
-    this->commands.emplace_back(command);
+    if (rpl::ops::cmpgt_f32(elem.s2, 0.f))
+      this->commands.emplace_back(command);
 
     // 3rd segment
     command.primitive = (bool(elem.type & 3u) || elem.type == 5u) ? -1.f : +1.f;
     current           = rpl::utils::interpolate(current, elem.s3, command.primitive * rpl::settings::kappa());
     command.goal      = current;
-    this->commands.emplace_back(command);
+    if (rpl::ops::cmpgt_f32(elem.s3, 0.f))
+      this->commands.emplace_back(command);
   }
 }
 
@@ -152,12 +155,13 @@ void rpl_ros2::ShelfinoPathExecutorNode::compute_deltas(const rpl::Pose &current
   rpl::Pose goal   = this->commands[this->current_waypoint].goal;
   float     ex     = (current.x() - goal.x());
   float     ey     = (current.y() - goal.y());
-  float     etheta = rpl::utils::rangeSymm(rpl::utils::rangeSymm(current.theta) - rpl::utils::rangeSymm(goal.theta));
+  float     etheta = rpl::utils::rangeSymm(current.theta - goal.theta);
   float     exy    = sqrtf(ex * ex + ey * ey);
   float     psi    = atan2f(ey, ex);
   float     alpha  = rpl::utils::rangeSymm(current.theta) + rpl::utils::rangeSymm(goal.theta);
 
   deltav = -this->kp * exy * cosf(rpl::utils::rangeSymm(current.theta) - psi);
+
   deltaw = -rpl::settings::linear() * rpl::utils::sinc(etheta * 0.5f) * sinf(psi - 0.5f * alpha) - this->kt * etheta;
 }
 
@@ -173,6 +177,8 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
                  float(msg->transform.translation.y)},
       rpl::utils::mod2pi(float(y))};
 
+  rpl::Pose goal = this->commands[this->current_waypoint].goal;
+  // std::cerr << goal.x() << " " << goal.y() << " " << goal.theta << "\n";
   float deltav, deltaw;
   this->compute_deltas(current, deltav, deltaw);
   if (this->current_waypoint == this->commands.size())
@@ -186,7 +192,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
     return;
   }
 
-  if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < .5f)
+  if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < 0.25f)
     this->current_waypoint += 1;
   else
     this->cmd_vel_pub->publish(this->straight(deltav, deltaw));
