@@ -72,7 +72,7 @@ namespace rpl_ros2
     std::vector<Command> commands;
     std::size_t          current_waypoint{0};
 
-    float kp = 0.1f;
+    float kp = 0.f;
     float kt = 1.f;
 
     rpl::Timer timer;

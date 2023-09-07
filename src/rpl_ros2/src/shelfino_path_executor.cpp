@@ -32,7 +32,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::get_waypoints2()
   float       rem  = 0.f;
   for (const auto &elem : this->path)
   {
-    rem     = 0.f;
+    // rem     = 0.f;
     current = elem.start;
 
     // 1st segment
@@ -88,6 +88,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::get_waypoints2()
         this->commands.emplace_back(command);
         rem += step;
       }
+      rem -= elem.s3;
       command.goal = rpl::utils::interpolate(current, elem.s3, command.primitive * rpl::settings::kappa());
       this->commands.emplace_back(command);
     }
@@ -142,7 +143,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::paths_cb(const rpl::Paths &paths)
   this->received = true;
   // if (paths.empty()) std::cerr << this->get_namespace() << " has no solution\n";
   this->path = std::move(paths);
-  this->get_waypoints();
+  this->get_waypoints2();
 
   auto qos       = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
   this->pose_sub = this->create_subscription<geometry_msgs::msg::TransformStamped>(
@@ -192,7 +193,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
     return;
   }
 
-  if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < 0.25f)
+  if ((current.point() - this->commands[this->current_waypoint].goal.point()).norm() < 0.4f)
     this->current_waypoint += 1;
   else
     this->cmd_vel_pub->publish(this->straight(deltav, deltaw));
