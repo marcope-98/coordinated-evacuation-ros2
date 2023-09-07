@@ -35,6 +35,7 @@ endif()
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Point.msg"
   "msg/Pose.msg"
+  "msg/Poses.msg"
   "msg/Polygon.msg"
   "msg/WorldDescriptor.msg"
   "msg/Graph.msg"

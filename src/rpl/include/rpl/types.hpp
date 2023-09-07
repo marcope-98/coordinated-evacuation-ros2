@@ -37,6 +37,7 @@ namespace rpl
 
   // ALIASES
   using Polygon = std::vector<Point>;
+  using Poses   = std::vector<Pose>;
   using Paths   = std::vector<Path>;
 
 } // namespace rpl

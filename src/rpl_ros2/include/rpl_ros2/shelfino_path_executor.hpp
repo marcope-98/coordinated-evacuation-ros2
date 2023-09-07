@@ -11,10 +11,10 @@
 #include "rpl/Timer.hpp"
 #include "rpl/common.hpp"
 #include "rpl/types.hpp"
-#include "rpl_msgs/msg/paths.hpp"
-#include "rpl_ros2/adapters/PathsAdapter.hpp"
+#include "rpl_msgs/msg/poses.hpp"
+#include "rpl_ros2/adapters/PosesAdapter.hpp"
 
-RCLCPP_USING_CUSTOM_TYPE_AS_ROS_MESSAGE_TYPE(rpl::Paths, rpl_msgs::msg::Paths);
+RCLCPP_USING_CUSTOM_TYPE_AS_ROS_MESSAGE_TYPE(rpl::Poses, rpl_msgs::msg::Poses);
 
 namespace rpl_ros2
 {
@@ -25,8 +25,6 @@ namespace rpl_ros2
 
   private:
     void compute_deltas(const rpl::Pose &current, float &deltav, float &deltaw);
-    void get_waypoints();
-    void get_waypoints2();
 
     geometry_msgs::msg::Twist straight(const float &deltav, const float &deltaw)
     {
@@ -53,7 +51,7 @@ namespace rpl_ros2
       return res;
     }
 
-    void paths_cb(const rpl::Paths &paths);
+    void poses_cb(const rpl::Poses &poses);
 
     void pose_cb(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
 
@@ -65,12 +63,11 @@ namespace rpl_ros2
     };
 
     rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr pose_sub;
-    rclcpp::Subscription<rpl::Paths>::SharedPtr                           paths_sub;
+    rclcpp::Subscription<rpl::Poses>::SharedPtr                           poses_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr               cmd_vel_pub;
 
-    rpl::Paths           path;
-    std::vector<Command> commands;
-    std::size_t          current_waypoint{0};
+    rpl::Poses  path;
+    std::size_t current_waypoint{0};
 
     float kp = 0.f;
     float kt = 1.f;

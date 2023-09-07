@@ -11,6 +11,7 @@
 #include "rpl/common.hpp"
 #include "rpl/internal/geometry.hpp"
 #include "rpl/internal/rplintrin.hpp"
+#include "rpl/internal/utils.hpp"
 
 using std::placeholders::_1;
 
@@ -25,19 +26,19 @@ rpl_ros2::ShelfinoDelayNode::ShelfinoDelayNode() : rclcpp::Node("shelfino_delay"
       // subscribe to /shelfino3/
       this->subscribers[2] = this->create_subscription<rpl::Paths>(
           "shelfino3/generated_path", qos, std::bind(&ShelfinoDelayNode::shelfino3_cb, this, _1));
-      this->publishers[2] = this->create_publisher<rpl::Paths>(
+      this->publishers[2] = this->create_publisher<rpl::Poses>(
           "shelfino3/final_path", qos);
     case 2:
       // subscribe to /shelfino2/
       this->subscribers[1] = this->create_subscription<rpl::Paths>(
           "shelfino2/generated_path", qos, std::bind(&ShelfinoDelayNode::shelfino2_cb, this, _1));
-      this->publishers[1] = this->create_publisher<rpl::Paths>(
+      this->publishers[1] = this->create_publisher<rpl::Poses>(
           "shelfino2/final_path", qos);
     case 1:
       // subscribe to /shelfino1/
       this->subscribers[0] = this->create_subscription<rpl::Paths>(
           "shelfino1/generated_path", qos, std::bind(&ShelfinoDelayNode::shelfino1_cb, this, _1));
-      this->publishers[0] = this->create_publisher<rpl::Paths>(
+      this->publishers[0] = this->create_publisher<rpl::Poses>(
           "shelfino1/final_path", qos);
       break;
     default:
@@ -53,11 +54,69 @@ rpl_ros2::ShelfinoDelayNode::~ShelfinoDelayNode()
   if (this->thread_.joinable()) this->thread_.join();
 }
 
+void rpl_ros2::ShelfinoDelayNode::get_waypoints(const std::size_t &shelfino)
+{
+  rpl::Pose   current;
+  const float step = 0.2f;
+  float       rem  = 0.f;
+  float       primitive;
+  for (const auto &path : this->paths[shelfino])
+  {
+    current = path.start;
+
+    // 1st segment
+    primitive = bool(path.type & 1u) ? -1.f : +1.f;
+    if (path.s1 < step)
+      rem = step;
+    else
+      while (rem < path.s1)
+      {
+        this->trajectory[shelfino].emplace_back(rpl::utils::interpolate(current, rem, primitive * rpl::settings::kappa()));
+        rem += step;
+      }
+    rem -= path.s1;
+
+    current = rpl::utils::interpolate(current, path.s1, primitive * rpl::settings::kappa());
+
+    // 2nd segment
+    switch (path.type)
+    {
+      case 4:
+        primitive = -1.f;
+        break;
+      case 5:
+        primitive = +1.f;
+        break;
+      default:
+        primitive = 0.f;
+    }
+
+    while (rem < path.s2)
+    {
+      this->trajectory[shelfino].emplace_back(rpl::utils::interpolate(current, rem, primitive * rpl::settings::kappa()));
+      rem += step;
+    }
+
+    current = rpl::utils::interpolate(current, path.s2, primitive * rpl::settings::kappa());
+    rem -= path.s2;
+
+    // 3rd segment
+    primitive = (bool(path.type & 3u) || path.type == 5u) ? -1.f : +1.f;
+    while (rem < path.s3)
+    {
+      this->trajectory[shelfino].emplace_back(rpl::utils::interpolate(current, rem, primitive * rpl::settings::kappa()));
+      rem += step;
+    }
+    rem -= path.s3;
+  }
+}
+
 void rpl_ros2::ShelfinoDelayNode::shelfino1_cb(const rpl::Paths &msg)
 {
   auto is_bit_set = bool(this->received & 0x01);
   if (is_bit_set) return;
   this->paths[0] = msg;
+  this->get_waypoints(0);
   this->received |= 0x01;
 }
 
@@ -66,6 +125,7 @@ void rpl_ros2::ShelfinoDelayNode::shelfino2_cb(const rpl::Paths &msg)
   auto is_bit_set = bool(this->received & 0x02);
   if (is_bit_set) return;
   this->paths[1] = msg;
+  this->get_waypoints(1);
   this->received |= 0x02;
 }
 
@@ -74,6 +134,7 @@ void rpl_ros2::ShelfinoDelayNode::shelfino3_cb(const rpl::Paths &msg)
   auto is_bit_set = bool(this->received & 0x04);
   if (is_bit_set) return;
   this->paths[2] = msg;
+  this->get_waypoints(2);
   this->received |= 0x04;
 }
 
@@ -120,6 +181,9 @@ void rpl_ros2::ShelfinoDelayNode::exec()
     this->delays[this->priorities[1]] += delay;
     this->delays[this->priorities[2]] += delay;
 
+    for (std::size_t i = 0; i < this->n_shelfinos; ++i)
+      std::cerr << this->delays[i] << "\n";
+
     std::cerr << "Shelfino Delay computation time: " << float(timer.stop()) * 0.001f << "ms\n";
 
     // register timer_callback and execute
@@ -133,19 +197,16 @@ float rpl_ros2::ShelfinoDelayNode::compute_delay_ms(const std::size_t &high, con
 {
   float delay = 0.f;
 
-  rpl::Paths pathH = this->paths[high];
-  rpl::Paths pathL = this->paths[low];
+  rpl::Poses pathH = this->trajectory[high];
+  rpl::Poses pathL = this->trajectory[low];
 
   for (std::size_t i = 0, j = 0;
        i < pathH.size() && j < pathL.size();
        ++i, ++j)
   {
-    if ((pathH[i].end.point() - pathL[j].end.point()).norm() < 2.f ||
-        rpl::geometry::intersects(pathH[i].start.point(), pathH[i].end.point(),
-                                  pathL[j].start.point(), pathL[j].end.point()))
+    if ((pathH[i].point() - pathL[j].point()).norm() < .7f)
     {
-      delay += 2.f;
-      // delay += pathH[i].sum;
+      delay += .4f;
       --j;
     }
   }
@@ -160,7 +221,7 @@ void rpl_ros2::ShelfinoDelayNode::timer_cb()
     if (this->delays[i] > 0.f)
       this->delays[i] -= 200.f;
     else
-      this->publishers[i]->publish(this->paths[i]);
+      this->publishers[i]->publish(this->trajectory[i]);
   }
   // NOTE: no need to sleep since this is a timer callback
 }
