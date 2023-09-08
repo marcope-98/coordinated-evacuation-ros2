@@ -23,8 +23,17 @@ namespace rpl
 
     static float rangeSymm(const float &angle)
     {
+#if 1
+      float res = angle;
+      while (res <= -M_PI)
+        res += settings::M_2PI();
+      while (res > M_PI)
+        res -= settings::M_2PI();
+      return res;
+#else
       float temp = (angle + M_PI) / settings::M_2PI();
       return (angle - settings::M_2PI() * floorf(temp));
+#endif
     }
 
     static float sinc(const float &value)

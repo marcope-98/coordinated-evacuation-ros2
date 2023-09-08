@@ -20,6 +20,7 @@ namespace rpl
     constexpr static float       iexp_factor() { return 1.f / exp_factor(); }
 
     // Dubins
+    static constexpr float       interpolation_step() { return .01f; }
     static constexpr float       rho() { return 0.9f; }
     static constexpr float       angular() { return 0.5f; }
     static constexpr float       linear() { return 0.3f; }

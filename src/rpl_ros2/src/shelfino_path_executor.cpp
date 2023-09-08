@@ -47,7 +47,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::compute_deltas(const rpl::Pose &current
   float     alpha  = rpl::utils::rangeSymm(current.theta) + rpl::utils::rangeSymm(goal.theta);
 
   deltav = -this->kp * exy * cosf(rpl::utils::rangeSymm(current.theta) - psi);
-  deltaw = -rpl::settings::linear() * rpl::utils::sinc(etheta * 0.5f) * sinf(psi - 0.5f * alpha) - this->kt * etheta;
+  deltaw = -exy * rpl::settings::linear() * rpl::utils::sinc(etheta * 0.5f) * sinf(psi - 0.5f * alpha) - this->kt * etheta;
 }
 
 void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::TransformStamped::SharedPtr msg)
@@ -62,6 +62,10 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
                  float(msg->transform.translation.y)},
       rpl::utils::mod2pi(float(y))};
 
+  while (this->current_waypoint != this->path.size() &&
+         ((current.point() - this->path[this->current_waypoint].point()).norm() < .36f))
+    this->current_waypoint += 1;
+
   float deltav, deltaw;
   this->compute_deltas(current, deltav, deltaw);
   if (this->current_waypoint == this->path.size())
@@ -75,10 +79,7 @@ void rpl_ros2::ShelfinoPathExecutorNode::pose_cb(const geometry_msgs::msg::Trans
     return;
   }
 
-  if ((current.point() - this->path[this->current_waypoint].point()).norm() < 0.4f)
-    this->current_waypoint += 1;
-  else
-    this->cmd_vel_pub->publish(this->straight(deltav, deltaw));
+  this->cmd_vel_pub->publish(this->straight(deltav, deltaw));
 }
 
 int main(int argc, char *argv[])

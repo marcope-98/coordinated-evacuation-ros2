@@ -118,6 +118,7 @@ void rpl_ros2::ShelfinoPlannerNode::exec()
     }
 
     std::cerr << "Solution time: " << float(timer.stop()) * 0.001f << "ms\n";
+    if (solution.empty()) std::cerr << "no solution\n";
 
     for (;;)
     {

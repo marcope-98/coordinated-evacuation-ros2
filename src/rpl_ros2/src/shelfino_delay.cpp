@@ -57,7 +57,7 @@ rpl_ros2::ShelfinoDelayNode::~ShelfinoDelayNode()
 void rpl_ros2::ShelfinoDelayNode::get_waypoints(const std::size_t &shelfino)
 {
   rpl::Pose   current;
-  const float step = 0.2f;
+  const float step = rpl::settings::interpolation_step();
   float       rem  = 0.f;
   float       primitive;
   for (const auto &path : this->paths[shelfino])
@@ -107,6 +107,7 @@ void rpl_ros2::ShelfinoDelayNode::get_waypoints(const std::size_t &shelfino)
       this->trajectory[shelfino].emplace_back(rpl::utils::interpolate(current, rem, primitive * rpl::settings::kappa()));
       rem += step;
     }
+    this->trajectory[shelfino].emplace_back(rpl::utils::interpolate(current, path.s3, primitive * rpl::settings::kappa()));
     rem -= path.s3;
   }
 }
@@ -206,7 +207,8 @@ float rpl_ros2::ShelfinoDelayNode::compute_delay_ms(const std::size_t &high, con
   {
     if ((pathH[i].point() - pathL[j].point()).norm() < .7f)
     {
-      delay += .4f;
+      // delay += .4f;
+      delay += rpl::settings::interpolation_step();
       --j;
     }
   }
