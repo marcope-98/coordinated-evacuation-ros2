@@ -56,12 +56,6 @@ namespace rpl_ros2
     void pose_cb(const geometry_msgs::msg::TransformStamped::SharedPtr msg);
 
   private:
-    struct Command
-    {
-      rpl::Pose goal;
-      float     primitive; // 0 straight, +1 left, -1 right
-    };
-
     rclcpp::Subscription<geometry_msgs::msg::TransformStamped>::SharedPtr pose_sub;
     rclcpp::Subscription<rpl::Poses>::SharedPtr                           poses_sub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr               cmd_vel_pub;
