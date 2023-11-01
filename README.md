@@ -58,12 +58,14 @@ The `roadmap_publisher` node reads the inflated obstacle list and computes a vis
 ### Path planning
 The `shelfino_planner` node, reads the roadmap, adds the starting position of the robot and computes the shortest path using Dijkstra algorithm.
 
-Then it finds the combination of Dubins manoeuvres that accomplish the shortest traversed distance from the starting point to the gate. If a collision happens between a Dubins segment or curves and the obstacles/border, the node repeats the process until all the the nodes have been visited.
+Then it finds the combination of Dubins manoeuvres that accomplishes the shortest traversed distance from the starting point to the gate. If a collision happens between a Dubins segment/curve and an obstacle/border, the node repeats the process until all the nodes have been visited.
 
-Once all the robots have found a solution, the `shelfino_delay` node computes the delay necessary in order to avoid collision between the trajectories and forward the computed waypoints to the `shelfino_path_executor` node.
+Once all the robots have found a solution, the `shelfino_delay` node computes the delay necessary in order to avoid collision between the trajectories and forward the computed waypoints to the `shelfino_path_executor` node. In this project the robot with a minimum traveled distance has the priority in case of collision.
+
+![](https://github.com/marcope-98/robot-planning-ros2/blob/master/media/step3.png)
 
 ### Path execution
-The `shelfino_path_executor` node loops over each waypoint and implements a Lyapunov based velocity control in order to reach the desired target with the computed orientation.
+The `shelfino_path_executor` node loops over each waypoint and implements a Lyapunov-based velocity controller in order to reach the desired target with the computed orientation.
 
 The result of the 3rd demo is as follows:
 

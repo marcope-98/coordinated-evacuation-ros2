@@ -36,7 +36,7 @@ bool rpl::CollisionDetection::lr_collision(Pose &current, const float &length, c
 
   float factor = right ? -1.f : +1.f;
   circle.center += factor * displacement;
-  float min_range = utils::mod2pi(current.theta - factor * M_PI);
+  float min_range = utils::mod2pi(current.theta - factor * M_PI_2);
   float max_range = utils::mod2pi(min_range + factor * length * settings::kappa());
   current         = utils::interpolate(current, length, factor * settings::kappa());
   if (right) std::swap(min_range, max_range);
